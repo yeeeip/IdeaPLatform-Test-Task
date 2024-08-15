@@ -6,25 +6,23 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TicketService {
 
-    private Set<String> getCarriers(Ticket[] tickets) {
-        Set<String> carriers = new HashSet<>();
-        for (Ticket t : tickets) {
-            carriers.add(t.carrier());
-        }
-
-        return carriers;
+    private Set<String> getCarriers(List<Ticket> tickets) {
+        return tickets.stream()
+                .map(Ticket::carrier)
+                .collect(Collectors.toSet());
     }
 
-    public Map<String, Duration> getMinFlightTimes(Ticket[] tickets) {
+    public Map<String, Duration> getMinFlightTimes(List<Ticket> tickets) {
         Set<String> carriers = getCarriers(tickets);
 
         Map<String, Duration> result = new HashMap<>();
         for (String carrier : carriers) {
             result.put(carrier,
-                    Arrays.stream(tickets)
+                    tickets.stream()
                             .filter(t -> t.carrier().equals(carrier))
                             .map(Ticket::getFlightDuration)
                             .min(Comparator.naturalOrder())
@@ -34,18 +32,18 @@ public class TicketService {
         return result;
     }
 
-    public BigDecimal getAvgPrice(Ticket[] tickets) {
+    public BigDecimal getAvgPrice(List<Ticket> tickets) {
         BigDecimal result = BigDecimal.ZERO;
 
         for (Ticket t : tickets) {
             result = result.add(t.price());
         }
 
-        return result.divide(BigDecimal.valueOf(tickets.length), RoundingMode.HALF_EVEN);
+        return result.divide(BigDecimal.valueOf(tickets.size()), RoundingMode.HALF_EVEN);
     }
 
-    public BigDecimal getMedianPrice(Ticket[] tickets) {
-        List<BigDecimal> sortedPrices = Arrays.stream(tickets)
+    public BigDecimal getMedianPrice(List<Ticket> tickets) {
+        List<BigDecimal> sortedPrices = tickets.stream()
                 .map(Ticket::price)
                 .sorted()
                 .toList();

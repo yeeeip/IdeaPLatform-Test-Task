@@ -1,5 +1,6 @@
 package com.nuzhd;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nuzhd.model.Ticket;
@@ -8,6 +9,7 @@ import com.nuzhd.util.JsonParser;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -19,7 +21,11 @@ public class Main {
         mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
 
         String ticketsJson = parser.parseJson(args[0]).toString();
-        Ticket[] tickets = mapper.readValue(ticketsJson, Ticket[].class);
+        List<Ticket> tickets = mapper.readValue(ticketsJson, new TypeReference<List<Ticket>>() {
+                }).stream()
+                .filter(t -> t.origin().equals("VVO"))
+                .filter(t -> t.destination().equals("TLV"))
+                .toList();
 
         TicketService ticketService = new TicketService();
 
